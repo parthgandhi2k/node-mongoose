@@ -4,8 +4,8 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "start": "npm run build && cross-env NODE_DEV=production node dist/server.js",
-    "dev": "cross-env NODE_DEV=development nodemon src/server.ts",
+    "start": "npm run build && cross-env NODE_ENV=production node dist/server.js",
+    "dev": "cross-env NODE_ENV=development nodemon src/server.ts",
     "build": "tsc -p ."
   },
   "keywords": [],
