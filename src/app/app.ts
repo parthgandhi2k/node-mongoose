@@ -3,7 +3,8 @@ import cors from 'cors';
 import hpp from 'hpp';
 import helmet from 'helmet';
 
-import IndexRouter from '../routes/index.route';
+import indexRouter from '../routes/index.route';
+import { mainErrorHandler, notFoundHandler } from '../middlewares/error.middleware';
 
 const app = express();
 
@@ -15,6 +16,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /* Initialize Routing */
-app.use(IndexRouter);
+app.use(indexRouter);
+
+/* Error Handling */
+app.use('*', notFoundHandler);
+app.use(mainErrorHandler);
 
 export default app;

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
-const IndexRouter = Router();
+const indexRouter = Router();
 
-IndexRouter.use((req, res, next) => res.status(200).send("Ok!"));
+indexRouter.use((req, res, next) => res.status(200).send("Ok!"));
 
-export default IndexRouter;
+export default indexRouter;
