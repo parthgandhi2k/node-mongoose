@@ -19,10 +19,10 @@ interface IUserInstanceMethods {
     comparePassword(password: string): Promise<boolean>;
 };
 
-type UserModel = Model<IUser, {}, IUserInstanceMethods>;
+type UserModelType = Model<IUser, {}, IUserInstanceMethods>;
 
 /* Create Schema */
-const userSchema = new Schema<IUser, UserModel, IUserInstanceMethods>({
+const userSchema = new Schema<IUser, UserModelType, IUserInstanceMethods>({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: { type: String, required: true },
@@ -50,4 +50,4 @@ userSchema.methods.comparePassword = function(
 };
 
 /* Create Model */
-export const UserModel = model<IUser, UserModel>("user", userSchema);
+export const UserModel = model<IUser, UserModelType>("user", userSchema);

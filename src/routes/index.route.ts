@@ -1,4 +1,6 @@
 import { Router } from 'express';
+
+import '../middlewares/passport.config';
 import authRouter from './auth.route';
 
 const indexRouter = Router();

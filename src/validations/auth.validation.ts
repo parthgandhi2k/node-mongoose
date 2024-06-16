@@ -11,3 +11,10 @@ export const signUp = {
         confirmPassword: Joi.valid(Joi.ref('password')),
     })
 };
+
+export const signIn = {
+    body: Joi.object({
+        email: Joi.string().regex(REGEX_PATTERNS.email).required(),
+        password: Joi.string().min(8).max(15).required(),
+    })
+};
