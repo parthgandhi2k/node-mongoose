@@ -36,8 +36,11 @@ const userSchema = new Schema<IUser, UserModelType, IUserInstanceMethods>({
 
 /* Define Pre Hooks */
 userSchema.pre(/save/, async function(next) {
-    const hashedPassword = await bcrypt.hash(this.get("password"), APP_CONFIG.SALT_ROUNDS);
-    this.set("password", hashedPassword);
+    const newPassword = this.get("password");
+    if (newPassword) {
+        const hashedPassword = await bcrypt.hash(newPassword, APP_CONFIG.SALT_ROUNDS);
+        this.set("password", hashedPassword);
+    }
     next();
 });
 
