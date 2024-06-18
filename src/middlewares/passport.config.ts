@@ -66,3 +66,6 @@ passport.use(
         }
     )
 );
+
+export const JWTMiddleware = passport.authenticate('jwt', { session: false });
+export const signInMiddleware = passport.authenticate('local-sign-in', { session: false });

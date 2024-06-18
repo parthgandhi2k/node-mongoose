@@ -1,7 +1,7 @@
-import passport from "passport";
 import { Router } from "express";
 import { validate } from "express-validation";
 
+import { signInMiddleware } from "../middlewares/passport.config";
 import * as authController from "../controllers/auth.controller";
 import * as authValidations from "../validations/auth.validation";
 
@@ -16,7 +16,7 @@ authRouter.post(
 authRouter.post(
     '/sign-in',
     validate(authValidations.signIn),
-    passport.authenticate('local-sign-in', { session: false }),
+    signInMiddleware,
     authController.signIn
 );
 
