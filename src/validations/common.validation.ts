@@ -7,4 +7,6 @@ export default {
     email: Joi.string().regex(REGEX_PATTERNS.email),
     firstName: Joi.string().max(30),
     lastName: Joi.string().max(30),
+    postTitle: Joi.string().max(100),
+    isoDate: Joi.date().iso()
 };

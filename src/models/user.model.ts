@@ -1,4 +1,4 @@
-import { Model, Schema, model } from "mongoose";
+import { Model, Schema, Types, model } from "mongoose";
 import bcrypt from 'bcrypt';
 
 import { USER_ROLES } from "../constants/enums.constant";
@@ -6,6 +6,7 @@ import { APP_CONFIG } from "../config";
 
 /* Define Model Interfaces */
 export interface IUser {
+    _id: Types.ObjectId;
     firstName: string;
     lastName: string;
     email: string;

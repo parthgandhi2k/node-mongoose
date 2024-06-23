@@ -3,6 +3,7 @@ import createError from "http-errors";
 
 import { IUser, UserModel } from "../models/user.model";
 import { getSuccessResponse } from "../utils/response.util";
+import { RequestUser } from "../middlewares/passport.config";
 
 export const getAllUsers: RequestHandler = async (req, res, next) => {
     try {
@@ -38,6 +39,9 @@ export const updateById: RequestHandler<{ userId: string }, {}, Partial<Pick<IUs
     try {
         const { userId } = req.params;
         const payload = req.body;
+        const JWTPayload = req.user as RequestUser;
+
+        if (JWTPayload._id !== userId) throw createError.Forbidden("Access Denied!");
 
         const user = await UserModel.findById(userId).select("-password -createdAt -updatedAt").lean();
 
