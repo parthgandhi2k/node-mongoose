@@ -4,6 +4,8 @@ import { validate } from "express-validation";
 import { JWTMiddleware } from "../middlewares/passport.config";
 import * as postController from "../controllers/post.controller";
 import * as postValidation from "../validations/post.validation";
+import { authRole } from "../middlewares/authRole.middleware";
+import { USER_ROLES } from "../constants/enums.constant";
 
 const postRouter = Router();
 
@@ -37,6 +39,7 @@ postRouter.put(
 postRouter.delete(
     '/:postId',
     JWTMiddleware,
+    authRole([USER_ROLES.ADMIN, USER_ROLES.USER]),
     validate(postValidation.deleteById),
     postController.deletePostById
 );

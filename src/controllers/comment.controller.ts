@@ -6,6 +6,16 @@ import { CommentModel } from "../models/comment.model";
 import { getSuccessResponse } from "../utils/response.util";
 import { JWTPayload } from "../utils/jwt.util";
 import { IUser } from "../models/user.model";
+import REGEX_PATTERNS from '../constants/regex-patterns.constant';
+import { USER_ROLES } from "../constants/enums.constant";
+
+export async function deleteCommentsByPostIds(postIds: string[] = []) {
+    postIds = postIds.filter(id => REGEX_PATTERNS.dbDocumentId.test(id));
+    return await CommentModel.updateMany(
+        { post: { $in: postIds }, isDeleted: false },
+        { isDeleted: true }
+    ).lean();
+}
 
 export const getCommentById: RequestHandler<{ commentId: string }> = async (req, res, next) => {
     try {
@@ -53,7 +63,7 @@ export const updateCommentById: RequestHandler<
 
 export const deleteCommentById: RequestHandler<{ commentId: string }> = async (req, res, next) => {
     try {
-        const { _id: userId } = req.user as JWTPayload;
+        const { _id: userId, role: userRole } = req.user as JWTPayload;
         const { commentId } = req.params;
 
         const comment = await CommentModel.findOne({ _id: commentId, isDeleted: false })
@@ -72,9 +82,14 @@ export const deleteCommentById: RequestHandler<{ commentId: string }> = async (r
 
         if (!comment) throw createError.NotFound("Comment not found");
 
-        // Throw error if comment and post not created by user
-        if (comment.createdBy.toString() != userId && comment.post.author._id.toString() != userId)
+        // Throw error if user role is not 'admin' and comment and post not created by user
+        if (
+            userRole != USER_ROLES.ADMIN
+            && comment.createdBy.toString() != userId
+            && comment.post.author._id.toString() != userId
+        ) {
             throw createError.Forbidden("Access Denied!");
+        }
 
         const deletedComment = await CommentModel.findOneAndUpdate(
             { _id: commentId, isDeleted: false },

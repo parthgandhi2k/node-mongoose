@@ -7,6 +7,28 @@ import { IUser } from "../models/user.model";
 import { getSuccessResponse } from "../utils/response.util";
 import { JWTPayload } from "../utils/jwt.util";
 import { excludeFields } from "../utils/helper.util";
+import { deleteCommentsByPostIds } from "./comment.controller";
+import REGEX_PATTERNS from '../constants/regex-patterns.constant';
+import { USER_ROLES } from "../constants/enums.constant";
+
+export async function deletePostsByUserIds(userIds: string[] = []) {
+    userIds = userIds.filter(id => REGEX_PATTERNS.dbDocumentId.test(id));
+
+    // Find Post Ids
+    const postIds = (await PostModel.find({
+        author: { $in: userIds },
+        isDeleted: false
+    }).select('_id').lean()).map(postData => postData._id.toString());
+
+    // Delete comments on the posts of the user
+    await deleteCommentsByPostIds(postIds);
+
+    // Delete posts
+    return await PostModel.updateMany(
+        { _id: { $in: postIds } },
+        { isDeleted: true }
+    ).lean();
+}
 
 export const getAllPosts: RequestHandler = async (req, res, next) => {
     const posts = await PostModel.find({ isDeleted: false }).select("-createdAt -updatedAt -isDeleted").lean();
@@ -83,7 +105,7 @@ export const updatePostById: RequestHandler<
 
 export const deletePostById: RequestHandler<{ postId: string }> = async (req, res, next) => {
     try {
-        const { _id: userId } = req.user as JWTPayload;
+        const { _id: userId, role: userRole } = req.user as JWTPayload;
         const { postId } = req.params;
 
         const post = await PostModel.findOne({ _id: postId, isDeleted: false })
@@ -92,13 +114,11 @@ export const deletePostById: RequestHandler<{ postId: string }> = async (req, re
         
         if (!post) throw createError.NotFound("Post not found");
 
-        if (post.author.toString() != userId) throw createError.Forbidden("Access Denied!");
+        // Throw error if user role is not 'admin' and he is not author of the post.
+        if (userRole != USER_ROLES.ADMIN && post.author.toString() != userId) throw createError.Forbidden("Access Denied!");
 
         // Delete comments
-        await CommentModel.updateMany(
-            { post: postId, isDeleted: false },
-            { isDeleted: true }
-        );
+        await deleteCommentsByPostIds([postId]);
 
         // Delete post
         const deletedPost = await PostModel.findOneAndUpdate(

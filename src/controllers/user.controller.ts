@@ -4,6 +4,7 @@ import createError from "http-errors";
 import { IUser, UserModel } from "../models/user.model";
 import { getSuccessResponse } from "../utils/response.util";
 import { RequestUser } from "../middlewares/passport.config";
+import { deletePostsByUserIds } from "./post.controller";
 
 export const getAllUsers: RequestHandler = async (req, res, next) => {
     try {
@@ -31,7 +32,7 @@ export const getUserById: RequestHandler<{ userId: string }> = async (req, res, 
     }
 };
 
-export const updateById: RequestHandler<{ userId: string }, {}, Partial<Pick<IUser, "email" | "firstName" | "lastName">>> = async (
+export const updateUserById: RequestHandler<{ userId: string }, {}, Partial<Pick<IUser, "email" | "firstName" | "lastName">>> = async (
     req,
     res,
     next
@@ -61,6 +62,33 @@ export const updateById: RequestHandler<{ userId: string }, {}, Partial<Pick<IUs
             .lean();
 
         return res.json(getSuccessResponse("User updated successfully", { user: updatedUser }));
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteUserById: RequestHandler<{ userId: string }> = async (req, res, next) => {
+    try {
+        const { userId } = req.params;
+
+        const user = await UserModel.findOne({ _id: userId, isDeleted: false })
+            .select('email firstName lastName')
+            .lean();
+
+        if (!user) throw createError.NotFound('User not found');
+
+        await deletePostsByUserIds([userId]);
+
+        // Delete post
+        const deletedUser = await UserModel.findOneAndUpdate(
+            { _id: userId },
+            { isDeleted: true },
+            { new: true }
+        ).select("email firstName lastName");
+
+        return res.json(
+            getSuccessResponse('User deleted successfully', { user: deletedUser })
+        );
     } catch (error) {
         next(error);
     }

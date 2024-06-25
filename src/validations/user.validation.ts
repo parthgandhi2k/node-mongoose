@@ -20,3 +20,9 @@ export const updateById = {
         lastName
     }),
 };
+
+export const deleteById = {
+    params: Joi.object({
+        userId: dbDocumentId.required(),
+    })
+};
