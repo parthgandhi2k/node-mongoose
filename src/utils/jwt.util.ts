@@ -3,6 +3,7 @@ import { APP_CONFIG } from "../config";
 
 export type JWTPayload = {
     _id: string;
+    role: string;
 };
 
 export const signAccessToken = (payload: JWTPayload) => {

@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import createError from "http-errors";
 
 import { PostModel } from "../models/post.model";
+import { CommentModel } from "../models/comment.model";
 import { IUser } from "../models/user.model";
 import { getSuccessResponse } from "../utils/response.util";
 import { JWTPayload } from "../utils/jwt.util";
@@ -62,12 +63,11 @@ export const updatePostById: RequestHandler<
 
         const post = await PostModel.findOne({ _id: postId, isDeleted: false })
             .select("-createdAt -updatedAt -isDeleted")
-            .populate<{ author: IUser }>('author', '_id')
             .lean();
 
         if (!post) throw createError.NotFound("Post not found");
 
-        if (post.author._id.toString() != userId) throw createError.Forbidden("Access Denied!");
+        if (post.author.toString() != userId) throw createError.Forbidden("Access Denied!");
 
         const updatedPost = await PostModel.findOneAndUpdate(
             { _id: postId, isDeleted: false },
@@ -88,13 +88,19 @@ export const deletePostById: RequestHandler<{ postId: string }> = async (req, re
 
         const post = await PostModel.findOne({ _id: postId, isDeleted: false })
             .select("-createdAt -updatedAt -isDeleted")
-            .populate<{ author: IUser }>('author', '_id')
             .lean();
         
         if (!post) throw createError.NotFound("Post not found");
 
-        if (post.author._id.toString() != userId) throw createError.Forbidden("Access Denied!");
+        if (post.author.toString() != userId) throw createError.Forbidden("Access Denied!");
 
+        // Delete comments
+        await CommentModel.updateMany(
+            { post: postId, isDeleted: false },
+            { isDeleted: true }
+        );
+
+        // Delete post
         const deletedPost = await PostModel.findOneAndUpdate(
             { _id: postId, isDeleted: false },
             { isDeleted: true },
@@ -104,5 +110,52 @@ export const deletePostById: RequestHandler<{ postId: string }> = async (req, re
         return res.json(getSuccessResponse('Post deleted successfully', { post: deletedPost }));
     } catch (error) {
         next(error);   
+    }
+};
+
+export const createComment: RequestHandler<
+    { postId: string },
+    {},
+    { comment: string }
+> = async (req, res, next) => {
+    try {
+        const user = req.user as JWTPayload;
+        const { postId } = req.params;
+        const { comment } = req.body;
+
+        const post = await PostModel.findOne({ _id: postId, isDeleted: false })
+            .select("_id")
+            .lean();
+
+        if (!post) throw createError.NotFound("Post not found");
+
+        const createCommentPayload = {
+            comment,
+            post: postId,
+            createdBy: user._id,
+        };
+
+        const createdComment = (await CommentModel.create(createCommentPayload)).toObject();
+
+        const resData = excludeFields(createdComment);
+
+        return res.status(201).json(getSuccessResponse("Comment created successfully", { comment: resData }));
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const getCommentsByPostId: RequestHandler<{ postId: string }> = async (req, res, next) => {
+    try {
+        const { postId } = req.params;
+
+        const comments = await CommentModel.find({ post: postId, isDeleted: false })
+            .select("-createdAt -updatedAt -isDeleted")
+            .populate<{ createdBy: IUser }>('createdBy', 'firstName lastName email')
+            .lean();
+
+        return res.json(getSuccessResponse("Comments fetched successfully", { comments }));
+    } catch (error) {
+        next(error);
     }
 };

@@ -8,5 +8,6 @@ export default {
     firstName: Joi.string().max(30),
     lastName: Joi.string().max(30),
     postTitle: Joi.string().max(100),
-    isoDate: Joi.date().iso()
+    isoDate: Joi.date().iso(),
+    comment: Joi.string().max(100),
 };

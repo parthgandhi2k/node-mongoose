@@ -41,4 +41,18 @@ postRouter.delete(
     postController.deletePostById
 );
 
+postRouter.post(
+    '/:postId/comments',
+    JWTMiddleware,
+    validate(postValidation.createComment),
+    postController.createComment
+);
+
+postRouter.get(
+    '/:postId/comments',
+    JWTMiddleware,
+    validate(postValidation.getCommentsByPostId),
+    postController.getCommentsByPostId
+);
+
 export default postRouter;

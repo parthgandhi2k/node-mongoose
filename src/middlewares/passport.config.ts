@@ -78,6 +78,7 @@ export const JWTMiddleware: RequestHandler = (req, res, next) => {
         { session: false },
         ((err, user, info, status) => {
             try {
+                /* 
                 let errMsg: string = '';
                 if (err && typeof err === 'object') {
                     errMsg = err.message || 'Unauthorized';
@@ -92,8 +93,10 @@ export const JWTMiddleware: RequestHandler = (req, res, next) => {
                         errMsg = 'Unauthorized';
                     }
                 }
-                if (errMsg) throw createError.Unauthorized(errMsg);
-                if (user) req.user = user;
+                if (errMsg) throw createError.Unauthorized(errMsg); */
+
+                if (err || !user) throw createError.Unauthorized('Invalid access token');
+                req.user = user;
                 next();
             } catch (error) {
                 next(error);

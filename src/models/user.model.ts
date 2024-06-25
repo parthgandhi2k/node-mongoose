@@ -12,6 +12,7 @@ export interface IUser {
     email: string;
     password: string;
     role: USER_ROLES;
+    isDeleted: boolean;
     createdAt: Date;
     updatedAt: Date;
 };
@@ -29,6 +30,7 @@ const userSchema = new Schema<IUser, UserModelType, IUserInstanceMethods>({
     email: { type: String, required: true },
     password: { type: String, required: true },
     role: { type: String, enum: USER_ROLES, default: USER_ROLES.USER },
+    isDeleted: { type: Boolean, default: false },
 }, {
     versionKey: false,
     timestamps: true,

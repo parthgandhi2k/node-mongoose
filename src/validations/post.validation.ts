@@ -2,7 +2,7 @@ import { Joi } from "express-validation";
 
 import commonValidation from "./common.validation";
 
-const { dbDocumentId, postTitle, isoDate } = commonValidation;
+const { dbDocumentId, postTitle, isoDate, comment } = commonValidation;
 
 export const create = {
     body: Joi.object({
@@ -28,6 +28,18 @@ export const updateById = {
 };
 
 export const deleteById = {
+    params: Joi.object({
+        postId: dbDocumentId.required(),
+    }),
+};
+
+export const createComment = {
+    body: Joi.object({
+        comment: comment.required(),
+    }),
+};
+
+export const getCommentsByPostId = {
     params: Joi.object({
         postId: dbDocumentId.required(),
     }),
